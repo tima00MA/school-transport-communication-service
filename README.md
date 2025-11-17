@@ -33,7 +33,7 @@ Ce microservice est le **point d’entrée unique** (API Gateway + Message Broke
 | `GET /actuator/health`    | Vérifie que le service est UP|
 
 ## 🛠 Technologies
-- Spring Boot 3.5.x
+- Spring Boot 3.5.4
 - Spring Cloud Eureka Client
 - RabbitMQ (files dynamiques)
 - PostgreSQL (logs + abonnements)
