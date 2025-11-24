@@ -4,8 +4,7 @@ import fs.master.asynccommunicationservice.model.MessageDTO;
 import fs.master.asynccommunicationservice.model.MessageLogDTO;
 import fs.master.asynccommunicationservice.model.Subscription;
 import fs.master.asynccommunicationservice.service.AsyncService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 

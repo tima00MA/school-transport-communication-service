@@ -1,173 +1,192 @@
 package fs.master.asynccommunicationservice.controller;
 
+import fs.master.asynccommunicationservice.dto.*;
+import fs.master.asynccommunicationservice.service.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import fs.master.asynccommunicationservice.model.*;
-import fs.master.asynccommunicationservice.service.CommunicationService;
 
-import java.util.Map;
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/communication")
+@RequestMapping("/communication") // point d'entrée unique
+@RequiredArgsConstructor
 public class CommunicationController {
+    private final AuthCommunicationService authService;
+    private final GpsCommunicationService gpsService;
+    private final StudentCommunicationService studentService;
+    private final BusCommunicationService busService;
+    private final NotificationCommunicationService notificationService;
+    private final RouteCommunicationService routeService;
+    private final  GroupementCommunicationService groupementService;
 
-    private final CommunicationService service;
-
-    public CommunicationController(CommunicationService service) {
-        this.service = service;
-    }
-
-    // ---------------- Students ----------------
+    // ------------------- STUDENT -------------------
     @GetMapping("/students")
-    public Object getStudents() {
-        return service.getAllStudents();
+    public List<StudentDTO> getAllStudents() {
+        return studentService.getAllStudents();
     }
 
     @GetMapping("/students/{id}")
-    public Object getStudent(@PathVariable Long id) {
-        return service.getStudentById(id);
+    public StudentDTO getStudentById(@PathVariable Long id) {
+        return studentService.getStudentById(id);
     }
 
     @PostMapping("/students")
-    public Object addStudent(@RequestBody Student s) {
-        return service.addStudent(s);
+    public StudentDTO createStudent(@RequestBody StudentDTO studentDTO) {
+        return studentService.createStudent(studentDTO);
     }
 
-    @PutMapping("/students/{id}")
-    public Object updateStudent(@PathVariable Long id, @RequestBody Student s) {
-        return service.updateStudent(id, s);
+    @GetMapping("/students/{id}/withBus")
+    public StudentDTO getStudentWithBus(@PathVariable Long id) {
+        return studentService.getStudentWithBus(id);
     }
 
-    @DeleteMapping("/students/{id}")
-    public void deleteStudent(@PathVariable Long id) {
-        service.deleteStudent(id);
+    @GetMapping("/students/byBus/{busId}")
+    public List<StudentDTO> getStudentsByBusId(@PathVariable Long busId) {
+        return studentService.getStudentsByBusId(busId);
     }
 
-    // ---------------- Bus ----------------
+    // ------------------- BUS -------------------
     @GetMapping("/buses")
-    public Object getBuses() {
-        return service.getAllBuses();
+    public List<BusDTO> getAllBuses() {
+        return busService.getAllBuses();
     }
 
     @GetMapping("/buses/{id}")
-    public Object getBus(@PathVariable Long id) {
-        return service.getBusById(id);
+    public BusDTO getBusById(@PathVariable Long id) {
+        return busService.getBusById(id);
     }
 
-    @PostMapping("/buses")
-    public Object addBus(@RequestBody Bus b) {
-        return service.addBus(b);
+    // ------------------- LOCATIONS -------------------
+    @PostMapping("/locations/{entityType}/{entityId}")
+    public ResponseEntity<String> createLocation(
+            @PathVariable String entityType,
+            @PathVariable String entityId,
+            @RequestBody CreateLocationRequest request) {
+
+        if (!"student".equalsIgnoreCase(entityType) && !"bus".equalsIgnoreCase(entityType)) {
+            return ResponseEntity.badRequest().body("entityType must be 'student' or 'bus'");
+        }
+        return gpsService.createLocation(entityType.toLowerCase(), entityId, request);
     }
 
-    @PutMapping("/buses/{id}")
-    public Object updateBus(@PathVariable Long id, @RequestBody Bus b) {
-        return service.updateBus(id, b);
+    @GetMapping("/locations/student/{studentId}")
+    public ResponseEntity<LocationDTO> getStudentLatestLocation(@PathVariable String studentId) {
+        LocationDTO dto = gpsService.getLatestLocationByEntityId(studentId);
+        if (dto == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(dto);
     }
 
-    @DeleteMapping("/buses/{id}")
-    public void deleteBus(@PathVariable Long id) {
-        service.deleteBus(id);
+    @GetMapping("/locations/bus/{busId}")
+    public ResponseEntity<LocationDTO> getBusLatestLocation(@PathVariable String busId) {
+        LocationDTO dto = gpsService.getLatestLocationByEntityId(busId);
+        if (dto == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(dto);
     }
 
-    // ---------------- GPS ----------------
-    @GetMapping("/location/{entityId}")
-    public Object getLocation(@PathVariable Long entityId) {
-        return service.getLocation(entityId);
+    @GetMapping("/locations/entity/{entityType}/{entityId}")
+    public List<LocationDTO> getLocationsByEntity(
+            @PathVariable String entityType,
+            @PathVariable String entityId,
+            @RequestParam(defaultValue = "0") int skip,
+            @RequestParam(defaultValue = "100") int limit) {
+        return gpsService.getLocationsByEntity(entityType.toLowerCase(), entityId, skip, limit);
     }
 
-    @PostMapping("/location/student")
-    public Object updateStudentLocation(@RequestBody GPSLocation loc) {
-        return service.updateStudentLocation(loc);
+    @GetMapping("/locations/entities/latest")
+    public List<LocationDTO> getAllEntitiesLatestLocations(@RequestParam(required = false) String entityType) {
+        return gpsService.getAllEntitiesLatestLocations(entityType);
     }
 
-    @PostMapping("/location/bus")
-    public Object updateBusLocation(@RequestBody GPSLocation loc) {
-        return service.updateBusLocation(loc);
+    @PostMapping("/locations/student/{studentId}")
+    public ResponseEntity<String> createStudentLocation(@PathVariable String studentId,
+                                                        @RequestBody CreateLocationRequest request) {
+        return gpsService.createLocation("student", studentId, request);
     }
 
-    // ---------------- Notifications ----------------
-    @PostMapping("/notifications/send")
-    public Object sendNotification(@RequestBody Notification n) {
-        return service.sendNotification(n);
+    @PostMapping("/locations/bus/{busId}")
+    public ResponseEntity<String> createBusLocation(@PathVariable String busId,
+                                                    @RequestBody CreateLocationRequest request) {
+        return gpsService.createLocation("bus", busId, request);
     }
-
+    //---------------Notification------------------------------------------
+    // Dans CommunicationController.java
     @GetMapping("/notifications/history/{userId}")
-    public Object getNotificationHistory(@PathVariable Long userId) {
-        return service.getNotificationHistory(userId);
+    public List<NotificationHistoryDTO> getNotificationHistory(@PathVariable String userId) {
+        return notificationService.getNotificationHistoryByUserId(userId);
     }
 
-    // ---------------- Routes ----------------
-    @GetMapping("/routes/optimal")
-    public Object getOptimalRoutes() {
-        return service.getOptimalRoutes();
+    @GetMapping("/notifications/types")
+    public List<NotificationTypeDTO> getAllNotificationTypes() {
+        return notificationService.getAllNotificationTypes();
+    }
+
+    @GetMapping("/notifications/subscriptions/{userId}")
+    public List<NotificationSubscriptionDTO> getUserSubscriptions(@PathVariable String userId) {
+        return notificationService.getUserSubscriptions(userId);
+    }
+    //-----------------route--------------------------------------------
+    // ------------------- ROUTES -------------------
+
+    @GetMapping("/routes/{busId}")
+    public RouteDTO getOptimalRoute(@PathVariable Long busId) {
+        return routeService.getOptimalRoute(busId);
     }
 
     @GetMapping("/routes/eta/{studentId}")
-    public Object getETA(@PathVariable Long studentId) {
-        return service.getStudentWithETA(studentId);
+    public ETAResponseDTO getETA(@PathVariable Long studentId) {
+        return routeService.getETA(studentId);
     }
 
     @PostMapping("/routes/generate")
-    public Object generateRoutes() {
-        return service.generateRoutes();
+    public List<RouteDTO> generateRoutes(@RequestParam String circuitType) {
+        return routeService.generateRoutes(circuitType);
+    }
+    // ------------------- GROUPEMENT D'ÉLÈVES -------------------
+
+    // Lister tous les groupes avec leurs élèves
+    @GetMapping("/groupement/groups")
+    public List<GroupeDTO> getAllGroups() {
+        return groupementService.getAllGroups();
     }
 
-    // ---------------- Groups ----------------
-    @GetMapping("/groups")
-    public Object getGroups() {
-        return service.getAllGroups();
+    // Détail d’un groupe
+    @GetMapping("/groupement/groups/{id}")
+    public GroupeDTO getGroupById(@PathVariable Long id) {
+        return groupementService.getGroupById(id);
     }
 
-    @GetMapping("/groups/{id}")
-    public Object getGroup(@PathVariable Long id) {
-        return service.getGroupById(id);
+    // Générer automatiquement les groupes
+    @PostMapping("/groupement/groups/generate")
+    public List<GroupeDTO> generateGroups() {
+        return groupementService.generateGroups();
     }
 
-    @PostMapping("/groups/generate")
-    public Object generateGroups() {
-        return service.generateGroups();
+    // Liste des élèves d’un groupe
+    @GetMapping("/groupement/groups/{id}/students")
+    public List<StudentDTO> getStudentsByGroupId(@PathVariable Long id) {
+        return groupementService.getStudentsByGroupId(id);
+    }
+    //--------------------Auth------------------------------
+
+    // Récupérer un utilisateur par ID
+    @GetMapping("/auth/user/{userId}")
+    public UserDTO getUser(@PathVariable String userId) {
+        return authService.getUserById(userId);
     }
 
-    @PutMapping("/groups/{id}")
-    public Object updateGroup(@PathVariable Long id,
-                              @RequestParam String nom,
-                              @RequestParam Integer taille) {
-        return service.updateGroup(id, nom, taille);
+    // Vérifier utilisateur
+    @GetMapping("/auth/user/{userId}/check")
+    public UserCheckDTO checkUser(@PathVariable String userId) {
+        return authService.checkUser(userId);
     }
 
-    @DeleteMapping("/groups/{id}")
-    public void deleteGroup(@PathVariable Long id) {
-        service.deleteGroup(id);
+    // Récupérer tous les utilisateurs
+    @GetMapping("/auth/users")
+    public List<UserDTO> getAllUsers() {
+        return authService.getAllUsers();
     }
 
-    // ---------------- Auth ----------------
-    @PostMapping("/validate")
-    public TokenValidationResponse validate(@RequestHeader(value = "Authorization", required = false) String token) {
-        return service.validateToken(token);
-    }
 
-    // ---------------- Inter-microservice ----------------
-
-    // Group ↔ Student
-    @GetMapping("/groups/{id}/students")
-    public Map<String, Object> getGroupWithStudents(@PathVariable Long id) {
-        return service.getGroupWithStudents(id);
-    }
-
-    // Bus ↔ Student
-    @GetMapping("/buses/{id}/students")
-    public Map<String, Object> getBusWithStudents(@PathVariable Long id) {
-        return service.getBusWithStudents(id);
-    }
-
-    // Bus ↔ GPS
-    @GetMapping("/buses/{id}/location")
-    public Map<String, Object> getBusWithLocation(@PathVariable Long id) {
-        return service.getBusWithLocation(id);
-    }
-
-    // Student ↔ Routes
-    @GetMapping("/students/{id}/eta")
-    public Map<String, Object> getStudentWithETA(@PathVariable Long id) {
-        return service.getStudentWithETA(id);
-    }
 }
+

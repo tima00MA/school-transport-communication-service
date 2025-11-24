@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Communication Service - Transport Scolaire</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; margin:0; padding:20px; }
+        h1 { text-align:center; color:#00d4ff; }
+        .container { max-width: 1000px; margin: auto; background: rgba(0,0,0,0.4); padding: 30px; border-radius: 15px; }
+        table { width:100%; border-collapse: collapse; margin-top:20px; }
+        th { background:#00d4ff; color:black; padding:12px; }
+        td { padding:10px; border-bottom:1px solid #00d4ff; }
+        .method { font-weight:bold; padding:5px 10px; border-radius:5px; }
+        .get { background:#28a745; color:white; }
+        .post { background:#ffc107; color:black; }
+        footer { text-align:center; margin-top:50px; font-size:0.9em; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Communication Service - Bus Scolaire</h1>
+    <p><strong>Base URL :</strong> <code>http://172.30.80.11:31008</code></p>
+    <p>Tous les endpoints du microservice de communication centralisé</p>
+
+    <h2>Endpoints Synchrones (/communication)</h2>
+    <table>
+        <tr><th>Méthode</th><th>Endpoint</th><th>Description</th></tr>
+        <tr><td class="method get">GET</td><td>/communication/students</td><td>Tous les élèves</td></tr>
+        <tr><td class="method get">GET</td><td>/communication/students/{id}</td><td>Détail d’un élève</td></tr>
+        <tr><td class="method post">POST</td><td>/communication/students</td><td>Créer un élève</td></tr>
+        <tr><td class="method get">GET</td><td>/communication/buses</td><td>Tous les bus</td></tr>
+        <tr><td class="method get">GET</td><td>/communication/buses/{id}</td><td>Détail d’un bus</td></tr>
+        <tr><td class="method post">POST</td><td>/communication/locations/student/{id}</td><td>Mettre à jour position élève</td></tr>
+        <tr><td class="method post">POST</td><td>/communication/locations/bus/{id}</td><td>Mettre à jour position bus</td></tr>
+        <tr><td class="method get">GET</td><td>/communication/locations/student/{id}</td><td>Dernière position élève</td></tr>
+        <tr><td class="method get">GET</td><td>/communication/routes/{busId}</td><td>Route optimale du bus</td></tr>
+        <tr><td class="method get">GET</td><td>/communication/routes/eta/{studentId}</td><td>ETA (heure d’arrivée) d’un élève</td></tr>
+        <tr><td class="method get">GET</td><td>/communication/groupement/groups</td><td>Tous les groupes d’élèves</td></tr>
+        <tr><td class="method post">POST</td><td>/communication/groupement/groups/generate</td><td>Générer automatiquement les groupes</td></tr>
+    </table>
+
+    <h2>Endpoints Asynchrones (/async)</h2>
+    <table>
+        <tr><td class="method post">POST</td><td>/async/publish</td><td>Publier un événement (ex: student.created, bus.delayed)</td></tr>
+        <tr><td class="method post">POST</td><td>/async/subscribe</td><td>S’abonner à une file RabbitMQ</td></tr>
+        <tr><td class="method get">GET</td><td>/async/logs</td><td>Historique de tous les messages publiés</td></tr>
+    </table>
+
+    <h2>Health & Info</h2>
+    <table>
+        <tr><td class="method get">GET</td><td>/actuator/health</td><td>État du service</td></tr>
+        <tr><td class="method get">GET</td><td>/</td><td>Cette page</td></tr>
+    </table>
+
+    <footer>
+        Soutenance 2025 - Projet Transport Scolaire - Microservice de Communication Centralisé<br>
+        <strong>RabbitMQ :</strong> http://172.30.80.11:15672 (guest/guest)
+    </footer>
+</div>
+</body>
+</html>
