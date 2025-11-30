@@ -44,4 +44,5 @@ public class RabbitMQConfig {
         template.setMessageConverter(new Jackson2JsonMessageConverter()); // Utilise JSON pour sérialisation
         return template;
     }
+
 }
