@@ -1,11 +1,9 @@
 package fs.master.asynccommunicationservice.service;
 
-
 import fs.master.asynccommunicationservice.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,7 +15,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RouteCommunicationService {
 
-    private final RestTemplate restTemplate;
+    // Ligne magique qui fait disparaître l'erreur rouge
+    private final RestTemplate restTemplate = new RestTemplate();
+
     private @Lazy final StudentCommunicationService studentService;
     private @Lazy final BusCommunicationService busService;
     private @Lazy final GpsCommunicationService gpsService;
@@ -81,7 +81,4 @@ public class RouteCommunicationService {
         }
         return List.of();
     }
-
-
 }
-

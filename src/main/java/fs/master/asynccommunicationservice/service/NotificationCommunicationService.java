@@ -3,48 +3,59 @@ package fs.master.asynccommunicationservice.service;
 import fs.master.asynccommunicationservice.dto.NotificationHistoryDTO;
 import fs.master.asynccommunicationservice.dto.NotificationTypeDTO;
 import fs.master.asynccommunicationservice.dto.NotificationSubscriptionDTO;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class NotificationCommunicationService {
 
-    private final RestTemplate restTemplate;
+    // On crée le RestTemplate ici → plus besoin d'injection
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${notification.service.url}")
-    private String notificationServiceUrl; // ex: http://localhost:8090/notifications
+    // Valeur par défaut si pas dans application.yml
+    @Value("${notification.service.url:http://localhost:8090/notifications}")
+    private String notificationServiceUrl;
 
     /**
-     * Get notification history for a specific user
+     * Récupérer l'historique des notifications d'un utilisateur
      */
     public List<NotificationHistoryDTO> getNotificationHistoryByUserId(String userId) {
         String url = notificationServiceUrl + "/history/" + userId;
-        NotificationHistoryDTO[] arr = restTemplate.getForObject(url, NotificationHistoryDTO[].class);
-        return arr == null ? List.of() : Arrays.asList(arr);
+        try {
+            NotificationHistoryDTO[] arr = restTemplate.getForObject(url, NotificationHistoryDTO[].class);
+            return arr != null ? List.of(arr) : Collections.emptyList();
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
     /**
-     * Get all notification types
+     * Récupérer tous les types de notifications
      */
     public List<NotificationTypeDTO> getAllNotificationTypes() {
         String url = notificationServiceUrl + "/types";
-        NotificationTypeDTO[] arr = restTemplate.getForObject(url, NotificationTypeDTO[].class);
-        return arr == null ? List.of() : Arrays.asList(arr);
+        try {
+            NotificationTypeDTO[] arr = restTemplate.getForObject(url, NotificationTypeDTO[].class);
+            return arr != null ? List.of(arr) : Collections.emptyList();
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
     /**
-     * Get all subscriptions of a user
+     * Récupérer les abonnements d'un utilisateur
      */
     public List<NotificationSubscriptionDTO> getUserSubscriptions(String userId) {
         String url = notificationServiceUrl + "/subscriptions/" + userId;
-        NotificationSubscriptionDTO[] arr = restTemplate.getForObject(url, NotificationSubscriptionDTO[].class);
-        return arr == null ? List.of() : Arrays.asList(arr);
+        try {
+            NotificationSubscriptionDTO[] arr = restTemplate.getForObject(url, NotificationSubscriptionDTO[].class);
+            return arr != null ? List.of(arr) : Collections.emptyList();
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 }

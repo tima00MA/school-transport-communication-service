@@ -1,6 +1,5 @@
 package fs.master.asynccommunicationservice.service;
 
-
 import fs.master.asynccommunicationservice.dto.CreateLocationRequest;
 import fs.master.asynccommunicationservice.dto.LocationDTO;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GpsCommunicationService {
 
-    private final RestTemplate restTemplate;
+    // Ligne magique qui tue l’erreur rouge private final RestTemplate restTemplate = new RestTemplate();
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${gps.service.url}")
     private String gpsServiceUrl; // ex: http://localhost:8001/locations
@@ -53,17 +54,11 @@ public class GpsCommunicationService {
      * Get latest locations for all entities (optionally filtered by entityType)
      */
     public List<LocationDTO> getAllEntitiesLatestLocations(String entityType) {
-        // Base URL du GPS service
-        String url = gpsServiceUrl + "/entities/locations"; // on concatène directement
-
-        // Ajouter paramètre si nécessaire
+        String url = gpsServiceUrl + "/entities/locations";
         if (entityType != null && !entityType.isEmpty()) {
-            url += "?entity_type=" + entityType; // gps service attend "entity_type"
+            url += "?entity_type=" + entityType;
         }
-
-        // Appel REST
         LocationDTO[] arr = restTemplate.getForObject(url, LocationDTO[].class);
         return arr == null ? List.of() : Arrays.asList(arr);
     }
-
 }
